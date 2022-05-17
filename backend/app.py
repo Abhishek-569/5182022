@@ -81,18 +81,6 @@ def get_time():
     return response_body
 
 
-@app.route('/profile')
-@cross_origin()
-@jwt_required()
-def my_profile():
-    response_body = {
-        "name": "Abhishek",
-        "about": "Hello! I'm a full stack developer that loves python and javascript"
-    }
-
-    return response_body
-
-
 @app.route('/')
 def serve():
     return send_from_directory(app.static_folder, 'index.html')
