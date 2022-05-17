@@ -7,7 +7,6 @@ function Profile(props) {
     function getData() {
         axios({
             method: "GET",
-            baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5000',
             url: "/data",
             headers: {
                 Authorization: 'Bearer ' + props.token

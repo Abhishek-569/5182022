@@ -8,14 +8,22 @@ from flask_jwt_extended import create_access_token, get_jwt, get_jwt_identity, \
     unset_jwt_cookies, jwt_required, JWTManager
 
 
-app = Flask(__name__, static_folder='my-app/build', static_url_path='')
-CORS(app)
-app.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=5)
-jwt = JWTManager(app)
+api = Flask(__name__)
+CORS(api)
 
 
-@app.after_request
+@api.route("/", methods=["GET", "POST"])
+@cross_origin()
+def serve():
+    return send_from_directory(api.static_folder, "index.html")
+
+
+api.config["JWT_SECRET_KEY"] = "please-remember-to-change-me"
+api.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=1)
+jwt = JWTManager(api)
+
+
+@api.after_request
 def refresh_expiring_jwts(response):
     try:
         exp_timestamp = get_jwt()["exp"]
@@ -33,7 +41,7 @@ def refresh_expiring_jwts(response):
         return response
 
 
-@app.route('/token', methods=["POST"])
+@api.route('/token', methods=["POST"])
 def create_token():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
@@ -45,22 +53,25 @@ def create_token():
     return response
 
 
-@app.route("/logout", methods=["POST"])
+@api.route("/logout", methods=["POST"])
 def logout():
     response = jsonify({"msg": "logout successful"})
     unset_jwt_cookies(response)
     return response
 
 
-@app.route('/api', methods=['GET'])
-@cross_origin()
-def index():
-    return{
-        "tutorial": "Flask React Heroku"
+@api.route('/profile')
+@jwt_required()
+def my_profile():
+    response_body = {
+        "name": "Nagato",
+        "about": "Hello! I'm a full stack developer that loves python and javascript"
     }
 
+    return response_body
 
-@app.route('/data')
+
+@api.route('/data')
 @cross_origin()
 @jwt_required()
 def get_time():
@@ -73,12 +84,3 @@ def get_time():
         "programming": "python"
     }
     return response_body
-
-
-@app.route('/')
-def serve():
-    return send_from_directory(app.static_folder, 'index.html')
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
