@@ -15,6 +15,12 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(minutes=5)
 jwt = JWTManager(app)
 
 
+@app.route("/", methods=["GET", "POST"])
+@cross_origin()
+def serve():
+    return send_from_directory(app.static_folder, "index.html")
+
+
 @app.after_request
 def refresh_expiring_jwts(response):
     try:
